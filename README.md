@@ -2,7 +2,7 @@
 
 A ROS 2 package for acquiring analog measurements from a Measurement Computing MCC 118 DAQ HAT and publishing them on ROS topics.
 
-This package reads the voltage values from the DAQ board, applies a scaling/calibration step, and publishes both a custom cable-tension message and a `geometry_msgs/WrenchStamped` topic for downstream processing.
+This package reads the voltage values from the DAQ board, applies a scaling/calibration step, and publishes cable tension forces as a `geometry_msgs/WrenchStamped` message on a ROS topic for downstream processing.
 
 ## Overview
 
@@ -18,7 +18,6 @@ The node initializes the MCC 118 board, configures a continuous analog input sca
 - Support for Measurement Computing MCC 118 HAT devices
 - Continuous analog acquisition from multiple channels
 - Real-time publishing of force measurements
-- Custom ROS messages for cable tension telemetry
 - `geometry_msgs/msg/WrenchStamped` publication for compatibility with robot force/tension pipelines
 
 ## Hardware Requirements
@@ -29,23 +28,6 @@ The node initializes the MCC 118 board, configures a continuous analog input sca
 
 This project expects the MCC DAQ HAT SDK / libraries to be installed on the machine before building.
 
-## Package Structure
-
-```text
-mcc118_driver/
-├── CMakeLists.txt
-├── LICENSE
-├── README.md
-├── include/
-│   └── mcc118_driver/
-├── msg/
-│   ├── CableTension.msg
-│   └── Time.msg
-├── package.xml
-├── src/
-│   └── mcc118_publisher.cpp
-└── ...
-```
 
 ## Dependencies
 
@@ -55,7 +37,7 @@ The package declares the following dependencies:
 - `rclcpp`
 - `std_msgs`
 - `geometry_msgs`
-- `daqhats_utils`
+- `daqhats_utils` 
 - `rosidl_default_generators`
 
 The CMake configuration also links against the MCC DAQ HAT library:
@@ -69,7 +51,7 @@ target_link_libraries(mcc118_publisher
 ## Build Instructions
 
 1. Install ROS 2 and the required build tools.
-2. Install the MCC DAQ HAT SDK / libraries for the MCC 118 board.
+2. Install the MCC DAQ HAT SDK / libraries for the MCC 118 board. https://github.com/mccdaq/daqhats#install-instructions 
 3. Clone the package into a ROS workspace:
 
 ```bash
@@ -108,21 +90,7 @@ The node will:
 
 ## Published Topics
 
-### 1. `/mcc118/measurements`
-
-Type: `mcc118_driver/msg/CableTension`
-
-This is the package's primary custom message.
-
-```text
-Time stamp
-float64 force_red
-float64 force_blue
-```
-
-The message captures a timestamp and the measured force on each channel.
-
-### 2. `/cable_tension`
+### 1. `/cable_tension`
 
 Type: `geometry_msgs/msg/WrenchStamped`
 
@@ -136,24 +104,6 @@ wrench.force.y
 
 This is useful when consuming the data in higher-level robot or force-control systems.
 
-## Custom Messages
-
-### `msg/Time.msg`
-
-```text
-uint32 sec
-uint32 nanosec
-```
-
-### `msg/CableTension.msg`
-
-```text
-Time stamp
-float64 force_red # tension on blue axis [N]
-float64 force_blue # tension on blue axis [N]
-```
-
-Note: the package currently names the force fields `force_red` and `force_blue`; the values are scaled and published as force estimates in newtons.
 
 ## Calibration and Scaling
 
@@ -180,7 +130,6 @@ These values are specific to the current setup and may need to be adjusted depen
 
 ```bash
 ros2 topic list
-ros2 topic echo /mcc118/measurements
 ros2 topic echo /cable_tension
 ```
 
@@ -211,5 +160,3 @@ source ~/ros2_ws/install/setup.bash
 # Run
 ros2 run mcc118_driver mcc118_publisher
 ```
-
-If you want, I can also create a more polished version tailored for GitHub with badges, installation steps for Ubuntu + ROS 2 Humble, and a sample `ros2 topic echo` output block.
